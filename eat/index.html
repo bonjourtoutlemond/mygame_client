@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>今天吃啥</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="wheel-panel" aria-label="吃啥转盘">
+        <div class="brand-row">
+          <div>
+            <p class="eyebrow">Lunch Roulette</p>
+            <h1>今天吃啥</h1>
+          </div>
+          <button class="icon-button" id="resetButton" type="button" title="恢复默认配置" aria-label="恢复默认配置">
+            <span aria-hidden="true">↺</span>
+          </button>
+        </div>
+
+        <div class="wheel-stage">
+          <div class="pointer" aria-hidden="true"></div>
+          <canvas id="wheelCanvas" width="720" height="720" aria-label="可配置权重转盘"></canvas>
+          <button class="spin-button" id="spinButton" type="button">
+            <span>开转</span>
+          </button>
+        </div>
+
+        <div class="result-strip" aria-live="polite">
+          <span class="result-label">待开奖</span>
+          <strong id="previewResult">把选择权交给转盘</strong>
+        </div>
+      </section>
+
+      <aside class="config-panel" aria-label="菜品配置">
+        <div class="login-panel">
+          <div>
+            <p class="eyebrow">Account</p>
+            <h2 id="loginTitle">登录后保存权重</h2>
+          </div>
+          <div class="login-grid">
+            <input id="usernameInput" type="text" placeholder="用户名" autocomplete="username" />
+            <input id="passwordInput" type="password" placeholder="密码暂不校验" autocomplete="current-password" />
+            <button class="text-button" id="loginButton" type="button">登录</button>
+          </div>
+          <p class="hint compact-hint" id="accountHint">服务器会保存用户名、密码和每个用户的权重配置。</p>
+        </div>
+
+        <div class="panel-title">
+          <div>
+            <p class="eyebrow">Config</p>
+            <h2>选项权重</h2>
+          </div>
+          <button class="text-button" id="addItemButton" type="button">新增</button>
+        </div>
+
+        <div class="config-head" aria-hidden="true">
+          <span>菜名</span>
+          <span>权重</span>
+          <span>拍脸图</span>
+          <span></span>
+        </div>
+        <div class="items-list" id="itemsList"></div>
+
+        <p class="hint">权重越高，命中概率越大。图片支持本地相对路径、绝对路径或网络图片地址。</p>
+      </aside>
+    </main>
+
+    <div class="modal-backdrop" id="resultModal" aria-hidden="true">
+      <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <button class="modal-close" id="closeModalButton" type="button" aria-label="关闭">×</button>
+        <div class="slap-frame">
+          <img id="modalImage" alt="" />
+        </div>
+        <p class="modal-kicker">拍脸提醒</p>
+        <h2 id="modalTitle">今天吃啥</h2>
+        <p class="modal-choice" id="modalChoice"></p>
+        <button class="again-button" id="againButton" type="button">再转一次</button>
+      </section>
+    </div>
+
+    <template id="itemTemplate">
+      <div class="item-row">
+        <input class="name-input" type="text" aria-label="菜名" />
+        <input class="weight-input" type="number" aria-label="权重" min="0" step="1" />
+        <input class="image-input" type="text" aria-label="拍脸图片地址" />
+        <button class="delete-button" type="button" title="删除" aria-label="删除">×</button>
+      </div>
+    </template>
+
+    <script src="./script.js"></script>
+  </body>
+</html>

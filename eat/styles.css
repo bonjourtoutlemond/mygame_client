@@ -1,0 +1,383 @@
+:root {
+  color-scheme: light;
+  --ink: #172026;
+  --muted: #65717a;
+  --line: #d7dee3;
+  --paper: #f7f8f5;
+  --panel: #ffffff;
+  --accent: #e84d36;
+  --accent-2: #0f8b8d;
+  --accent-3: #f2b705;
+  --shadow: 0 24px 70px rgba(28, 39, 45, 0.18);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family:
+    Inter, "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--ink);
+  background:
+    linear-gradient(135deg, rgba(232, 77, 54, 0.12), transparent 34%),
+    linear-gradient(315deg, rgba(15, 139, 141, 0.16), transparent 38%),
+    var(--paper);
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.app-shell {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 430px;
+  gap: 24px;
+  align-items: center;
+  padding: 32px 0;
+}
+
+.wheel-panel,
+.config-panel {
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(215, 222, 227, 0.9);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(12px);
+}
+
+.wheel-panel {
+  padding: clamp(20px, 4vw, 34px);
+}
+
+.config-panel {
+  padding: 22px;
+}
+
+.login-panel {
+  display: grid;
+  gap: 12px;
+  padding-bottom: 18px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.login-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 86px;
+  gap: 8px;
+}
+
+.brand-row,
+.panel-title {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  color: var(--accent-2);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+h1,
+h2 {
+  margin: 0;
+  letter-spacing: 0;
+}
+
+h1 {
+  font-size: clamp(2.4rem, 5vw, 4.8rem);
+  line-height: 1;
+}
+
+h2 {
+  font-size: 1.35rem;
+}
+
+.icon-button,
+.modal-close,
+.delete-button {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  display: inline-grid;
+  place-items: center;
+  font-weight: 800;
+}
+
+.text-button,
+.again-button {
+  border: 0;
+  border-radius: 8px;
+  background: var(--ink);
+  color: #fff;
+  padding: 10px 16px;
+  font-weight: 800;
+}
+
+.wheel-stage {
+  position: relative;
+  width: min(76vw, 560px);
+  aspect-ratio: 1;
+  margin: 34px auto 26px;
+  display: grid;
+  place-items: center;
+}
+
+#wheelCanvas {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  filter: drop-shadow(0 18px 34px rgba(23, 32, 38, 0.24));
+}
+
+.pointer {
+  position: absolute;
+  z-index: 3;
+  top: -3px;
+  left: 50%;
+  width: 38px;
+  height: 54px;
+  transform: translateX(-50%);
+  background: var(--accent);
+  clip-path: polygon(50% 100%, 0 0, 100% 0);
+  filter: drop-shadow(0 5px 8px rgba(23, 32, 38, 0.28));
+}
+
+.spin-button {
+  position: absolute;
+  z-index: 4;
+  width: clamp(98px, 18vw, 136px);
+  aspect-ratio: 1;
+  border: 8px solid #fff;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 12px 28px rgba(232, 77, 54, 0.35);
+  font-size: clamp(1.35rem, 2.5vw, 1.8rem);
+  font-weight: 900;
+}
+
+.spin-button:disabled {
+  cursor: wait;
+  filter: grayscale(0.25);
+}
+
+.result-strip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.result-label {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+#previewResult {
+  text-align: right;
+}
+
+.config-head,
+.item-row {
+  display: grid;
+  grid-template-columns: minmax(88px, 1fr) 78px minmax(110px, 1.2fr) 40px;
+  gap: 8px;
+  align-items: center;
+}
+
+.config-head {
+  margin-top: 22px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.items-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+input {
+  min-width: 0;
+  width: 100%;
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  padding: 0 10px;
+}
+
+input:focus,
+button:focus-visible {
+  outline: 3px solid rgba(15, 139, 141, 0.26);
+  outline-offset: 2px;
+}
+
+.delete-button {
+  color: var(--accent);
+}
+
+.hint {
+  margin: 18px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.compact-hint {
+  margin: 0;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: none;
+  place-items: center;
+  padding: 20px;
+  background: rgba(10, 16, 20, 0.58);
+}
+
+.modal-backdrop.is-open {
+  display: grid;
+}
+
+.modal {
+  position: relative;
+  width: min(430px, 100%);
+  border-radius: 8px;
+  background: #fff;
+  padding: 24px;
+  text-align: center;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.35);
+  animation: slapIn 420ms cubic-bezier(0.2, 1.35, 0.35, 1);
+}
+
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+
+.slap-frame {
+  width: min(280px, 75vw);
+  aspect-ratio: 4 / 3;
+  margin: 14px auto 18px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: #eef2f3;
+}
+
+.slap-frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.modal-kicker {
+  margin: 0 0 4px;
+  color: var(--accent);
+  font-weight: 900;
+}
+
+.modal h2 {
+  font-size: 2rem;
+}
+
+.modal-choice {
+  margin: 10px 0 22px;
+  color: var(--ink);
+  font-size: 2.2rem;
+  font-weight: 900;
+}
+
+.again-button {
+  width: 100%;
+  background: var(--accent-2);
+}
+
+@keyframes slapIn {
+  from {
+    opacity: 0;
+    transform: scale(0.72) rotate(-6deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+@media (max-width: 920px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .wheel-stage {
+    width: min(86vw, 540px);
+  }
+}
+
+@media (max-width: 560px) {
+  .app-shell {
+    width: min(100% - 20px, 1180px);
+    padding: 10px 0;
+    gap: 12px;
+  }
+
+  .wheel-panel,
+  .config-panel {
+    padding: 16px;
+  }
+
+  .config-head {
+    display: none;
+  }
+
+  .item-row {
+    grid-template-columns: 1fr 70px 40px;
+  }
+
+  .login-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .image-input {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .delete-button {
+    grid-column: 3;
+    grid-row: 1;
+  }
+}
