@@ -3,6 +3,27 @@ setlocal EnableExtensions EnableDelayedExpansion
 
 cd /d "%~dp0"
 
+set "PAUSE_ON_EXIT=1"
+echo %* | findstr /I /C:"--no-pause" >nul && set "PAUSE_ON_EXIT=0"
+if not exist "logs" mkdir "logs"
+
+if not defined GIT_CLIENT_BAT_LOGGING (
+    for /f %%I in ('powershell -NoProfile -Command "[datetime]::Now.ToString('yyyyMMdd_HHmmss_fff') + '_' + $PID + '_' + [guid]::NewGuid().ToString('N').Substring(0,8)"') do set "LOG_STAMP=%%I"
+    if not defined LOG_STAMP set "LOG_STAMP=%RANDOM%"
+    set "LOG_FILE=%CD%\logs\git_client_!LOG_STAMP!.log"
+    set "GIT_CLIENT_BAT_LOGGING=1"
+
+    echo [INFO] Writing log to "!LOG_FILE!"
+    call "%~f0" %* > "!LOG_FILE!" 2>&1
+    set "EXIT_CODE=!ERRORLEVEL!"
+
+    type "!LOG_FILE!"
+    echo.
+    echo [INFO] Persistent log: "!LOG_FILE!"
+    if "!PAUSE_ON_EXIT!"=="1" pause
+    exit /b !EXIT_CODE!
+)
+
 set "DEFAULT_BRANCH=main"
 set "DEFAULT_MSG=Update client"
 set "DEFAULT_REMOTE_URL=https://github.com/bonjourtoutlemond/mygame_client.git"
@@ -82,6 +103,10 @@ if /i "%~1"=="--status-only" (
     shift
     goto :parse_args
 )
+if /i "%~1"=="--no-pause" (
+    shift
+    goto :parse_args
+)
 set "MSG=%~1"
 shift
 goto :parse_args
@@ -131,7 +156,7 @@ echo [INFO] Staging client files...
 if errorlevel 1 goto :fail
 
 echo [INFO] Current client status:
-"!GIT_EXE!" status --short
+"!GIT_EXE!" status --short -- . ":(exclude)node_modules" ":(exclude)node_modules/**" ":(exclude)data" ":(exclude)data/**" ":(exclude)logs" ":(exclude)logs/**"
 echo.
 
 "!GIT_EXE!" diff --cached --quiet
@@ -193,14 +218,14 @@ if not exist ".git" (
     echo [INFO] No independent client .git directory found in %CD%.
     exit /b 0
 )
-"!GIT_EXE!" status --short --branch
+"!GIT_EXE!" status --short --branch -- . ":(exclude)node_modules" ":(exclude)node_modules/**" ":(exclude)data" ":(exclude)data/**" ":(exclude)logs" ":(exclude)logs/**"
 "!GIT_EXE!" remote -v
 exit /b 0
 
 :dry_run
 echo [INFO] Dry run: no git state will be changed.
 if exist ".git" (
-    "!GIT_EXE!" status --short --branch
+    "!GIT_EXE!" status --short --branch -- . ":(exclude)node_modules" ":(exclude)node_modules/**" ":(exclude)data" ":(exclude)data/**" ":(exclude)logs" ":(exclude)logs/**"
     echo.
     "!GIT_EXE!" add --dry-run -- . ":(exclude)node_modules" ":(exclude)node_modules/**" ":(exclude)data" ":(exclude)data/**" ":(exclude)logs" ":(exclude)logs/**"
 ) else (
@@ -211,7 +236,7 @@ exit /b 0
 :fail
 echo.
 echo [ERROR] Client git script failed.
-"!GIT_EXE!" status --short --branch
+"!GIT_EXE!" status --short --branch -- . ":(exclude)node_modules" ":(exclude)node_modules/**" ":(exclude)data" ":(exclude)data/**" ":(exclude)logs" ":(exclude)logs/**"
 exit /b 1
 
 :usage
@@ -227,4 +252,5 @@ echo   --no-pull          Do not pull before commit.
 echo   --no-push          Commit locally but do not push.
 echo   --dry-run          Show what would happen without changing git state.
 echo   --status-only      Print status and remote information only.
+echo   --no-pause         Do not pause before the window closes.
 exit /b 0
