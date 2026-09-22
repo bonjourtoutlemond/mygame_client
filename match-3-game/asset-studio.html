@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>消消乐素材工坊</title>
+    <link rel="stylesheet" href="./asset-studio.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Match-3 Asset Studio</p>
+          <h1>消消乐素材工坊</h1>
+        </div>
+        <div class="export-summary" aria-live="polite">
+          <span id="sourceName">未选择图片</span>
+          <strong id="outputModeLabel">棋子图标</strong>
+        </div>
+      </header>
+
+      <section class="workspace">
+        <aside class="tool-panel" aria-label="素材配置">
+          <div class="panel-block">
+            <h2>图片来源</h2>
+            <label class="upload-drop" for="fileInput">
+              <input id="fileInput" type="file" accept="image/jpeg,image/png,image/webp" multiple />
+              <span class="upload-icon" aria-hidden="true">+</span>
+              <strong>上传 iPhone 照片</strong>
+              <small>可多选，支持 JPG / PNG / WebP，浏览器内批量处理</small>
+            </label>
+          </div>
+
+          <div class="panel-block">
+            <div class="block-title">
+              <h2>批量处理</h2>
+              <span class="batch-count" id="batchCount">0 张</span>
+            </div>
+            <div class="batch-actions">
+              <button class="primary-button" id="batchCurrentButton" type="button">批量导出当前类型</button>
+              <button class="secondary-button" id="batchAllButton" type="button">批量导出三套图片</button>
+            </div>
+            <div class="batch-status" id="batchStatus">多选照片后，可直接批量下载 PNG。</div>
+          </div>
+
+          <div class="panel-block">
+            <div class="block-title">
+              <h2>示例照片</h2>
+              <button class="ghost-button" id="regenerateSamples" type="button">换一批</button>
+            </div>
+            <div class="sample-grid" id="sampleGrid"></div>
+          </div>
+
+          <div class="panel-block">
+            <h2>输出类型</h2>
+            <div class="segmented" role="radiogroup" aria-label="输出类型">
+              <button class="segment is-active" type="button" data-mode="icon">图标 256</button>
+              <button class="segment" type="button" data-mode="card">卡片 512x768</button>
+              <button class="segment" type="button" data-mode="slap">拍脸 1024</button>
+            </div>
+          </div>
+
+          <div class="panel-block">
+            <h2>裁剪与风格</h2>
+            <label class="field">
+              <span>缩放</span>
+              <input id="scaleInput" type="range" min="1" max="3" step="0.01" value="1" />
+            </label>
+            <label class="field">
+              <span>横向</span>
+              <input id="offsetXInput" type="range" min="-1" max="1" step="0.01" value="0" />
+            </label>
+            <label class="field">
+              <span>纵向</span>
+              <input id="offsetYInput" type="range" min="-1" max="1" step="0.01" value="0" />
+            </label>
+            <label class="field">
+              <span>圆角</span>
+              <input id="radiusInput" type="range" min="0" max="42" step="1" value="18" />
+            </label>
+            <label class="field">
+              <span>描边</span>
+              <input id="borderInput" type="range" min="0" max="24" step="1" value="8" />
+            </label>
+            <label class="field">
+              <span>背景</span>
+              <select id="backdropInput">
+                <option value="soft">柔和光晕</option>
+                <option value="clean">干净浅色</option>
+                <option value="rare">稀有卡面</option>
+                <option value="dark">深色舞台</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="panel-block">
+            <h2>命名</h2>
+            <label class="text-field">
+              <span>素材名称</span>
+              <input id="assetNameInput" type="text" value="甜心头像" maxlength="24" />
+            </label>
+            <label class="text-field">
+              <span>稀有度</span>
+              <select id="rarityInput">
+                <option value="N">N 普通</option>
+                <option value="R" selected>R 稀有</option>
+                <option value="SR">SR 超稀有</option>
+                <option value="SSR">SSR 典藏</option>
+              </select>
+            </label>
+          </div>
+        </aside>
+
+        <section class="preview-panel" aria-label="素材预览">
+          <div class="canvas-frame">
+            <canvas id="previewCanvas" width="512" height="512"></canvas>
+          </div>
+          <div class="preview-meta">
+            <div>
+              <span>导出尺寸</span>
+              <strong id="sizeLabel">256 x 256</strong>
+            </div>
+            <div>
+              <span>建议用途</span>
+              <strong id="usageLabel">消消棋子图标</strong>
+            </div>
+          </div>
+          <div class="action-row">
+            <button class="primary-button" id="downloadButton" type="button">下载当前素材</button>
+            <button class="secondary-button" id="copyButton" type="button">复制预览图</button>
+          </div>
+        </section>
+
+        <section class="gallery-panel" aria-label="成品素材">
+          <div class="block-title">
+            <div>
+              <p class="eyebrow">Finished Assets</p>
+              <h2>成品素材对比</h2>
+            </div>
+            <button class="ghost-button" id="buildGalleryButton" type="button">重新生成</button>
+          </div>
+          <div class="asset-tabs">
+            <button class="tab is-active" type="button" data-gallery="icons">棋子</button>
+            <button class="tab" type="button" data-gallery="cards">卡片</button>
+            <button class="tab" type="button" data-gallery="slaps">拍脸</button>
+          </div>
+          <div class="asset-grid" id="assetGrid"></div>
+        </section>
+      </section>
+    </main>
+
+    <div class="lightbox" id="lightbox" aria-hidden="true">
+      <button class="lightbox-close" id="lightboxClose" type="button" aria-label="关闭">x</button>
+      <img id="lightboxImage" alt="" />
+    </div>
+
+    <script src="./asset-studio.js"></script>
+  </body>
+</html>
