@@ -7,11 +7,19 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
+    <div class="scene-backdrop" aria-hidden="true">
+      <div class="cloud cloud-a"></div>
+      <div class="cloud cloud-b"></div>
+      <div class="sun"></div>
+      <div class="hill hill-a"></div>
+      <div class="hill hill-b"></div>
+    </div>
     <main class="app-shell">
       <header class="topbar">
-        <div>
-          <p class="eyebrow">Match-3 Game</p>
+        <div class="brand-block">
+          <p class="eyebrow">Family Match-3</p>
           <h1>星糖消消乐</h1>
+          <p class="tagline">今晚一起闯关，把甜甜的卡片带回家</p>
         </div>
         <div class="player-card">
           <img id="activeSkin" alt="" />
@@ -24,8 +32,8 @@
 
       <section class="login-panel" id="loginPanel">
         <div>
-          <p class="eyebrow">Account</p>
-          <h2>登录后开始挑战</h2>
+          <p class="eyebrow">Family Table</p>
+          <h2>家庭小队入场</h2>
         </div>
         <input id="usernameInput" type="text" value="test" maxlength="64" placeholder="账号" />
         <input id="passwordInput" type="password" value="test" maxlength="255" placeholder="密码" />
@@ -79,6 +87,13 @@
         </aside>
 
         <section class="board-panel">
+          <div class="board-heading">
+            <div>
+              <p class="eyebrow">Sweet Board</p>
+              <h2>客厅糖果棋盘</h2>
+            </div>
+            <span class="board-badge">亲子同乐</span>
+          </div>
           <div class="hud">
             <div>
               <span>当前关卡</span>
