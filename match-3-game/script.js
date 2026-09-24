@@ -38,6 +38,9 @@ const state = {
   score: 0,
   timeLeft: 0,
   movesLeft: 0,
+  combo: 0,
+  maxCombo: 0,
+  boosters: { time: 1, steps: 1, sweep: 1 },
   timer: null,
   busy: false,
 };
@@ -64,10 +67,12 @@ const currentLevelName = $("#currentLevelName");
 const targetScore = $("#targetScore");
 const scoreText = $("#scoreText");
 const timerText = $("#timerText");
+const comboText = $("#comboText");
 const objectiveText = $("#objectiveText");
 const startButton = $("#startButton");
 const shuffleButton = $("#shuffleButton");
 const hintButton = $("#hintButton");
+const familySkillButtons = [...document.querySelectorAll(".family-skills button")];
 const modal = $("#modal");
 const modalImage = $("#modalImage");
 const modalKicker = $("#modalKicker");
@@ -293,11 +298,17 @@ function renderLevelInfo() {
   targetScore.textContent = level.targetScore;
   scoreText.textContent = state.score;
   timerText.textContent = state.session ? `${state.timeLeft}s` : "--";
+  comboText.textContent = `x${comboMultiplier().toFixed(1)}`;
   const cost = level.firstChallenged ? level.retryEnergyCost : level.firstChallengeEnergyCost;
   const movesText = state.session ? `剩余 ${state.movesLeft} 步` : `${level.moveLimit} 步`;
-  objectiveText.textContent = `目标 ${level.targetScore} 分 · ${level.timeLimitSec}s · ${movesText} · 本次消耗 ${cost} 精力 · 首通奖励卡片和精力`;
+  objectiveText.textContent = `目标 ${level.targetScore} 分 · ${level.timeLimitSec}s · ${movesText} · 4连造横/竖糖，5连造小爆糖 · 连锁越多分越高`;
   startButton.disabled = !level.unlocked || Boolean(state.session);
   startButton.textContent = level.unlocked ? "开始挑战" : "关卡未解锁";
+  familySkillButtons.forEach((button) => {
+    const skill = button.dataset.skill;
+    button.disabled = !state.session || state.busy || state.boosters[skill] <= 0;
+    button.querySelector("span").textContent = `${skillLabel(skill)} x${state.boosters[skill]}`;
+  });
 }
 
 function seededRandom(seed) {
@@ -316,6 +327,20 @@ function setTile(row, col, tile) {
   state.board[row][col] = tile;
 }
 
+function cloneTile(tile, power = null) {
+  return tile ? { ...tile, power } : null;
+}
+
+function comboMultiplier() {
+  return 1 + Math.max(0, state.combo - 1) * 0.25;
+}
+
+function skillLabel(skill) {
+  if (skill === "time") return "+10秒";
+  if (skill === "steps") return "+3步";
+  return "清5格";
+}
+
 function createBoard(seed) {
   const level = currentLevel();
   const tiles = state.config.tiles.slice(0, level.tileCount);
@@ -325,7 +350,7 @@ function createBoard(seed) {
     for (let col = 0; col < SIZE; col += 1) {
       let tile;
       do {
-        tile = tiles[Math.floor(random() * tiles.length)];
+        tile = cloneTile(tiles[Math.floor(random() * tiles.length)]);
       } while (
         (col >= 2 && state.board[row][col - 1]?.id === tile.id && state.board[row][col - 2]?.id === tile.id) ||
         (row >= 2 && state.board[row - 1][col]?.id === tile.id && state.board[row - 2][col]?.id === tile.id)
@@ -343,10 +368,12 @@ function renderBoard() {
       const button = document.createElement("button");
       button.type = "button";
       button.className = "tile";
+      if (tile?.power) button.classList.add(`is-power-${tile.power}`);
       if (state.selectedTile?.row === row && state.selectedTile?.col === col) button.classList.add("is-selected");
       button.dataset.row = row;
       button.dataset.col = col;
-      button.innerHTML = tile ? `<img src="${tile.image}" alt="${tile.name}" />` : "";
+      const powerLabel = tile?.power === "row" ? "横" : tile?.power === "col" ? "竖" : tile?.power === "bomb" ? "爆" : "";
+      button.innerHTML = tile ? `<img src="${tile.image}" alt="${tile.name}" />${powerLabel ? `<span class="power-mark">${powerLabel}</span>` : ""}` : "";
       button.addEventListener("click", () => selectTile(row, col));
       boardEl.append(button);
     }
@@ -363,14 +390,20 @@ function swap(a, b) {
   setTile(b.row, b.col, temp);
 }
 
-function findMatches() {
-  const hits = new Set();
+function findMatchGroups() {
+  const groups = [];
   for (let row = 0; row < SIZE; row += 1) {
     let run = 1;
     for (let col = 1; col <= SIZE; col += 1) {
       if (col < SIZE && tileAt(row, col)?.id === tileAt(row, col - 1)?.id) run += 1;
       else {
-        if (run >= 3) for (let i = 0; i < run; i += 1) hits.add(`${row},${col - 1 - i}`);
+        if (run >= 3) {
+          groups.push({
+            direction: "row",
+            tile: tileAt(row, col - 1),
+            cells: Array.from({ length: run }, (_, i) => ({ row, col: col - 1 - i })),
+          });
+        }
         run = 1;
       }
     }
@@ -380,15 +413,71 @@ function findMatches() {
     for (let row = 1; row <= SIZE; row += 1) {
       if (row < SIZE && tileAt(row, col)?.id === tileAt(row - 1, col)?.id) run += 1;
       else {
-        if (run >= 3) for (let i = 0; i < run; i += 1) hits.add(`${row - 1 - i},${col}`);
+        if (run >= 3) {
+          groups.push({
+            direction: "col",
+            tile: tileAt(row - 1, col),
+            cells: Array.from({ length: run }, (_, i) => ({ row: row - 1 - i, col })),
+          });
+        }
         run = 1;
       }
     }
   }
+  return groups;
+}
+
+function findMatches() {
+  const hits = new Set();
+  findMatchGroups().forEach((group) => group.cells.forEach(({ row, col }) => hits.add(`${row},${col}`)));
   return [...hits].map((key) => {
     const [row, col] = key.split(",").map(Number);
     return { row, col };
   });
+}
+
+function addHit(map, row, col) {
+  if (row >= 0 && row < SIZE && col >= 0 && col < SIZE && tileAt(row, col)) {
+    map.set(`${row},${col}`, { row, col });
+  }
+}
+
+function expandedHits(cells) {
+  const hits = new Map();
+  cells.forEach(({ row, col }) => addHit(hits, row, col));
+  let changed = true;
+  while (changed) {
+    changed = false;
+    [...hits.values()].forEach(({ row, col }) => {
+      const tile = tileAt(row, col);
+      const before = hits.size;
+      if (tile?.power === "row") {
+        for (let c = 0; c < SIZE; c += 1) addHit(hits, row, c);
+      } else if (tile?.power === "col") {
+        for (let r = 0; r < SIZE; r += 1) addHit(hits, r, col);
+      } else if (tile?.power === "bomb") {
+        for (let r = row - 1; r <= row + 1; r += 1) {
+          for (let c = col - 1; c <= col + 1; c += 1) addHit(hits, r, c);
+        }
+      }
+      if (hits.size > before) changed = true;
+    });
+  }
+  return hits;
+}
+
+function choosePower(group, origin) {
+  const longGroups = group
+    .filter((item) => item.cells.length >= 4)
+    .sort((a, b) => b.cells.length - a.cells.length);
+  if (!longGroups.length) return null;
+  const best = longGroups[0];
+  const originCell = origin && best.cells.find((cell) => cell.row === origin.row && cell.col === origin.col);
+  const cell = originCell || best.cells[Math.floor(best.cells.length / 2)];
+  return {
+    ...cell,
+    tile: cloneTile(best.tile, best.cells.length >= 5 ? "bomb" : best.direction),
+  };
 }
 
 function dropTiles() {
@@ -400,30 +489,52 @@ function dropTiles() {
       if (tileAt(row, col)) stack.push(tileAt(row, col));
     }
     for (let row = SIZE - 1; row >= 0; row -= 1) {
-      setTile(row, col, stack.shift() || tiles[Math.floor(Math.random() * tiles.length)]);
+      setTile(row, col, stack.shift() || cloneTile(tiles[Math.floor(Math.random() * tiles.length)]));
     }
   }
 }
 
-async function resolveMatches() {
+async function clearCells(cells, scoreReason = "match") {
+  const hits = expandedHits(cells);
+  hits.forEach(({ row, col }) => {
+    const el = boardEl.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+    if (el) el.classList.add(scoreReason === "skill" ? "is-helped" : "is-clearing");
+    setTile(row, col, null);
+  });
+  state.score += Math.round((hits.size * 40 + Math.max(0, hits.size - 3) * 20) * comboMultiplier());
+  renderLevelInfo();
+  await new Promise((resolve) => setTimeout(resolve, scoreReason === "skill" ? 210 : 170));
+  dropTiles();
+  renderBoard();
+  await new Promise((resolve) => setTimeout(resolve, 90));
+  return hits.size;
+}
+
+async function resolveMatches(origin = null) {
   let totalCleared = 0;
   while (true) {
-    const matches = findMatches();
-    if (!matches.length) break;
-    totalCleared += matches.length;
-    matches.forEach(({ row, col }) => {
-      const el = boardEl.querySelector(`[data-row="${row}"][data-col="${col}"]`);
-      if (el) el.classList.add("is-clearing");
-      setTile(row, col, null);
-    });
-    state.score += matches.length * 40 + Math.max(0, matches.length - 3) * 15;
-    renderLevelInfo();
-    await new Promise((resolve) => setTimeout(resolve, 170));
-    dropTiles();
-    renderBoard();
-    await new Promise((resolve) => setTimeout(resolve, 90));
+    const groups = findMatchGroups();
+    if (!groups.length) break;
+    state.combo += 1;
+    state.maxCombo = Math.max(state.maxCombo, state.combo);
+    const power = choosePower(groups, origin);
+    const hits = expandedHits(groups.flatMap((group) => group.cells));
+    if (power) hits.delete(`${power.row},${power.col}`);
+    totalCleared += await clearCells([...hits.values()]);
+    if (power) {
+      setTile(power.row, power.col, power.tile);
+      renderBoard();
+    }
+    origin = null;
   }
   if (totalCleared && state.score >= currentLevel().targetScore) await finishGame(true);
+}
+
+async function activatePowerCells(cells) {
+  state.combo += 1;
+  state.maxCombo = Math.max(state.maxCombo, state.combo);
+  await clearCells(cells);
+  await resolveMatches();
 }
 
 async function selectTile(row, col) {
@@ -449,7 +560,8 @@ async function selectTile(row, col) {
   state.selectedTile = null;
   swap(previous, current);
   renderBoard();
-  if (!findMatches().length) {
+  const powerCells = [previous, current].filter(({ row, col }) => tileAt(row, col)?.power);
+  if (!findMatches().length && !powerCells.length) {
     await new Promise((resolve) => setTimeout(resolve, 160));
     swap(previous, current);
     renderBoard();
@@ -457,7 +569,10 @@ async function selectTile(row, col) {
     return;
   }
   state.movesLeft -= 1;
-  await resolveMatches();
+  state.combo = 0;
+  state.maxCombo = 0;
+  if (powerCells.length) await activatePowerCells(powerCells);
+  else await resolveMatches(current);
   renderBoard();
   if (state.session && state.movesLeft <= 0 && state.score < currentLevel().targetScore) finishGame(false);
   state.busy = false;
@@ -470,9 +585,54 @@ function shuffleBoard() {
 }
 
 function showHint() {
-  const tiles = [...boardEl.querySelectorAll(".tile")];
-  tiles.slice(0, 2).forEach((tile) => tile.classList.add("is-hint"));
+  const hint = findBestHint();
+  const tiles = hint.length
+    ? hint.map(({ row, col }) => boardEl.querySelector(`[data-row="${row}"][data-col="${col}"]`)).filter(Boolean)
+    : [...boardEl.querySelectorAll(".tile")].slice(0, 2);
+  tiles.forEach((tile) => tile.classList.add("is-hint"));
   setTimeout(() => tiles.forEach((tile) => tile.classList.remove("is-hint")), 700);
+}
+
+function findBestHint() {
+  for (let row = 0; row < SIZE; row += 1) {
+    for (let col = 0; col < SIZE; col += 1) {
+      for (const next of [{ row, col: col + 1 }, { row: row + 1, col }]) {
+        if (next.row >= SIZE || next.col >= SIZE) continue;
+        const a = { row, col };
+        swap(a, next);
+        const works = findMatches().length > 0 || tileAt(a.row, a.col)?.power || tileAt(next.row, next.col)?.power;
+        swap(a, next);
+        if (works) return [a, next];
+      }
+    }
+  }
+  return [];
+}
+
+async function useFamilySkill(skill) {
+  if (!state.session || state.busy || state.boosters[skill] <= 0) return;
+  state.boosters[skill] -= 1;
+  if (skill === "time") {
+    state.timeLeft += 10;
+    openModal("Family Skill", "暖心加时", "家人帮你多争取了 10 秒。", activeSkinData()?.slapImage);
+  } else if (skill === "steps") {
+    state.movesLeft += 3;
+    openModal("Family Skill", "一起想想", "大家一起观察棋盘，额外获得 3 步。", activeSkinData()?.slapImage);
+  } else {
+    state.busy = true;
+    const cells = [];
+    const center = { row: Math.floor(SIZE / 2), col: Math.floor(SIZE / 2) };
+    for (let row = center.row - 1; row <= center.row + 1; row += 1) {
+      for (let col = center.col - 1; col <= center.col + 1; col += 1) {
+        if (Math.abs(row - center.row) + Math.abs(col - center.col) <= 1) cells.push({ row, col });
+      }
+    }
+    state.combo = Math.max(1, state.combo);
+    await clearCells(cells, "skill");
+    await resolveMatches();
+    state.busy = false;
+  }
+  renderLevelInfo();
 }
 
 async function startGame() {
@@ -493,6 +653,9 @@ async function startGame() {
     }
     state.session = payload.session;
     state.score = 0;
+    state.combo = 0;
+    state.maxCombo = 0;
+    state.boosters = { time: 1, steps: 1, sweep: 1 };
     state.timeLeft = currentLevel().timeLimitSec;
     state.movesLeft = currentLevel().moveLimit;
     createBoard(payload.session.seed);
@@ -675,6 +838,7 @@ $("#loginButton").addEventListener("click", login);
 startButton.addEventListener("click", startGame);
 shuffleButton.addEventListener("click", shuffleBoard);
 hintButton.addEventListener("click", showHint);
+familySkillButtons.forEach((button) => button.addEventListener("click", () => useFamilySkill(button.dataset.skill)));
 modalAction.addEventListener("click", closeModal);
 $("#modalClose").addEventListener("click", closeModal);
 document.querySelectorAll(".tab").forEach((button) => {

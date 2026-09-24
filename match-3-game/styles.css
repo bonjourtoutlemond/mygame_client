@@ -537,7 +537,7 @@ button:disabled {
 
 .hud {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -557,6 +557,35 @@ button:disabled {
 .objective-strip {
   margin: 12px 0;
   line-height: 1.45;
+}
+
+.family-skills {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 0 14px;
+}
+
+.family-skills button {
+  min-height: 62px;
+  align-content: center;
+  gap: 4px;
+  background: linear-gradient(180deg, #fffdf8, #fff0cf);
+  color: var(--ink);
+  border: 2px solid rgba(139, 89, 62, 0.16);
+  box-shadow:
+    inset 0 -5px 0 rgba(184, 117, 73, 0.12),
+    var(--soft-shadow);
+}
+
+.family-skills button strong,
+.family-skills button span {
+  display: block;
+}
+
+.family-skills button span {
+  color: var(--berry);
+  font-size: 0.8rem;
 }
 
 .board-wrap {
@@ -615,6 +644,46 @@ button:disabled {
   filter: drop-shadow(0 5px 4px rgba(90, 52, 41, 0.16));
 }
 
+.power-mark {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--berry);
+  border: 2px solid rgba(255, 200, 74, 0.9);
+  font-size: 0.72rem;
+  font-weight: 900;
+  box-shadow: 0 4px 9px rgba(116, 69, 45, 0.18);
+}
+
+.tile.is-power-row,
+.tile.is-power-col,
+.tile.is-power-bomb {
+  position: relative;
+}
+
+.tile.is-power-row,
+.tile.is-power-col {
+  background:
+    radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.94) 0 28%, transparent 29%),
+    linear-gradient(135deg, #fff8ee, #dff8f2);
+}
+
+.tile.is-power-bomb {
+  background:
+    radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.94) 0 28%, transparent 29%),
+    linear-gradient(135deg, #fff0cc, #ffc1d0);
+  box-shadow:
+    inset 0 -6px 0 rgba(184, 117, 73, 0.15),
+    0 0 0 4px rgba(255, 200, 74, 0.3),
+    0 8px 16px rgba(201, 79, 117, 0.18);
+}
+
 .tile.is-selected {
   transform: scale(1.08);
   box-shadow:
@@ -631,6 +700,14 @@ button:disabled {
 .tile.is-clearing {
   opacity: 0;
   transform: scale(0.4) rotate(8deg);
+}
+
+.tile.is-helped {
+  opacity: 0;
+  transform: scale(1.18) rotate(-8deg);
+  box-shadow:
+    inset 0 -6px 0 rgba(184, 117, 73, 0.15),
+    0 0 0 7px rgba(77, 182, 167, 0.32);
 }
 
 .start-button {
@@ -766,6 +843,10 @@ button:disabled {
   .level-list,
   .skin-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .family-skills {
+    grid-template-columns: 1fr;
   }
 
   .hud div {
