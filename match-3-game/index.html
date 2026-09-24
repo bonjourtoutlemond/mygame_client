@@ -30,14 +30,47 @@
         </div>
       </header>
 
-      <section class="login-panel" id="loginPanel">
-        <div>
-          <p class="eyebrow">Family Table</p>
-          <h2>家庭小队入场</h2>
+      <section class="login-panel" id="loginPanel" aria-labelledby="loginTitle">
+        <div class="login-stage">
+          <div class="login-mascot" id="loginMascot" aria-hidden="true">
+            <div class="mascot-star star-one"></div>
+            <div class="mascot-star star-two"></div>
+            <div class="mascot-head">
+              <div class="mascot-ear ear-left"></div>
+              <div class="mascot-ear ear-right"></div>
+              <div class="mascot-face">
+                <div class="mascot-eye eye-left"><i></i></div>
+                <div class="mascot-eye eye-right"><i></i></div>
+                <div class="mascot-mouth"></div>
+              </div>
+              <div class="mascot-arm arm-left"></div>
+              <div class="mascot-arm arm-right"></div>
+            </div>
+            <div class="mascot-body">
+              <span></span>
+            </div>
+          </div>
+          <div class="login-copy">
+            <p class="eyebrow">Family Table</p>
+            <h2 id="loginTitle">家庭小队入场</h2>
+            <p>选一个家人昵称，带着甜甜卡片去闯关。</p>
+          </div>
         </div>
-        <input id="usernameInput" type="text" value="test" maxlength="64" placeholder="账号" />
-        <input id="passwordInput" type="password" value="test" maxlength="255" placeholder="密码" />
-        <button id="loginButton" type="button">进入游戏</button>
+
+        <form class="login-form" id="loginForm">
+          <label class="login-field">
+            <span>小队昵称</span>
+            <input id="usernameInput" type="text" value="test" maxlength="64" placeholder="例如：糖糖一家" autocomplete="username" />
+          </label>
+          <label class="login-field">
+            <span>家庭暗号</span>
+            <span class="password-wrap">
+              <input id="passwordInput" type="password" maxlength="255" placeholder="可不填，暂不校验" autocomplete="current-password" />
+              <button id="passwordToggle" type="button" aria-label="显示或隐藏家庭暗号">看</button>
+            </span>
+          </label>
+          <button id="loginButton" type="submit">进入游戏</button>
+        </form>
       </section>
 
       <section class="game-layout">

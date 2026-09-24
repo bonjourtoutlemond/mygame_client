@@ -48,8 +48,11 @@ const state = {
 const $ = (selector) => document.querySelector(selector);
 const boardEl = $("#board");
 const loginPanel = $("#loginPanel");
+const loginForm = $("#loginForm");
+const loginMascot = $("#loginMascot");
 const usernameInput = $("#usernameInput");
 const passwordInput = $("#passwordInput");
+const passwordToggle = $("#passwordToggle");
 const playerName = $("#playerName");
 const playerStats = $("#playerStats");
 const activeSkin = $("#activeSkin");
@@ -820,21 +823,53 @@ function closeModal() {
 }
 
 async function login() {
+  const username = usernameInput.value.trim() || "guest";
   try {
-    const payload = await api("/api/match3/login", { username: usernameInput.value, password: passwordInput.value });
+    const payload = await api("/api/match3/login", { username, password: passwordInput.value });
     applyPayload(payload);
   } catch {
-    buildLocalState(usernameInput.value || "guest");
+    buildLocalState(username);
     openModal("Offline", "已进入本地试玩", "当前没有连上服务器，进度会临时存在这个浏览器。", activeSkinData()?.slapImage);
   }
-  loginPanel.style.display = "none";
+  loginPanel.classList.add("is-hidden");
   state.selectedLevelId = state.profile.highestUnlockedLevel;
   renderState();
   createBoard(Date.now());
   renderBoard();
 }
 
-$("#loginButton").addEventListener("click", login);
+function trackMascotEyes(event) {
+  if (!loginMascot || loginPanel.classList.contains("is-hidden")) return;
+  const rect = loginMascot.getBoundingClientRect();
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+  const dx = Math.max(-1, Math.min(1, (event.clientX - centerX) / 220));
+  const dy = Math.max(-1, Math.min(1, (event.clientY - centerY) / 180));
+  loginMascot.style.setProperty("--look-x", `${dx * 7}px`);
+  loginMascot.style.setProperty("--look-y", `${dy * 5}px`);
+}
+
+function setMascotMood(mood, enabled) {
+  if (!loginMascot) return;
+  loginMascot.classList.toggle(mood, enabled);
+}
+
+loginForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  login();
+});
+document.addEventListener("pointermove", trackMascotEyes);
+usernameInput.addEventListener("focus", () => setMascotMood("is-curious", true));
+usernameInput.addEventListener("blur", () => setMascotMood("is-curious", false));
+passwordInput.addEventListener("focus", () => setMascotMood("is-shy", true));
+passwordInput.addEventListener("blur", () => setMascotMood("is-shy", false));
+passwordToggle.addEventListener("click", () => {
+  const visible = passwordInput.type === "text";
+  passwordInput.type = visible ? "password" : "text";
+  passwordToggle.textContent = visible ? "看" : "藏";
+  setMascotMood("is-peeking", !visible);
+  passwordInput.focus();
+});
 startButton.addEventListener("click", startGame);
 shuffleButton.addEventListener("click", shuffleBoard);
 hintButton.addEventListener("click", showHint);

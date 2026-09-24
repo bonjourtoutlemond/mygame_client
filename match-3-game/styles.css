@@ -235,15 +235,278 @@ h2 {
 }
 
 .login-panel {
-  align-items: end;
-  gap: 12px;
-  padding: 16px;
-  margin-bottom: 18px;
+  position: fixed;
+  inset: 0;
+  z-index: 15;
+  display: grid;
+  grid-template-columns: minmax(280px, 420px) minmax(280px, 420px);
+  align-items: center;
+  justify-content: center;
+  gap: clamp(18px, 4vw, 44px);
+  padding: 24px;
+  margin: 0;
   border-color: rgba(255, 111, 141, 0.35);
+  border-radius: 0;
+  background:
+    radial-gradient(circle at 20% 18%, rgba(255, 255, 255, 0.75) 0 13%, transparent 14%),
+    radial-gradient(circle at 76% 22%, rgba(255, 247, 184, 0.72) 0 10%, transparent 11%),
+    linear-gradient(180deg, rgba(190, 232, 255, 0.96), rgba(255, 238, 205, 0.96));
+  transition:
+    opacity 260ms ease,
+    visibility 260ms ease,
+    transform 260ms ease;
 }
 
-.login-panel div {
-  margin-right: auto;
+.login-panel.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-12px);
+  pointer-events: none;
+}
+
+.login-stage,
+.login-form {
+  position: relative;
+  z-index: 1;
+}
+
+.login-stage {
+  display: grid;
+  justify-items: center;
+  gap: 22px;
+}
+
+.login-copy {
+  max-width: 390px;
+  text-align: center;
+}
+
+.login-copy p:last-child {
+  margin: 10px 0 0;
+  color: #724c4d;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.login-mascot {
+  --look-x: 0px;
+  --look-y: 0px;
+  position: relative;
+  width: min(320px, 70vw);
+  height: 320px;
+  display: grid;
+  place-items: end center;
+}
+
+.mascot-head {
+  position: absolute;
+  top: 18px;
+  width: 220px;
+  height: 210px;
+  border: 5px solid #7a4a35;
+  border-radius: 48% 48% 44% 44%;
+  background:
+    radial-gradient(circle at 34% 32%, rgba(255, 255, 255, 0.78) 0 8%, transparent 9%),
+    linear-gradient(180deg, #fff1a8, #ffbe6a);
+  box-shadow:
+    inset 0 -14px 0 rgba(151, 78, 45, 0.12),
+    0 22px 38px rgba(111, 66, 42, 0.18);
+  transition: transform 220ms ease;
+}
+
+.login-mascot.is-curious .mascot-head {
+  transform: translateY(-8px) rotate(-2deg);
+}
+
+.mascot-ear {
+  position: absolute;
+  top: -30px;
+  width: 74px;
+  height: 74px;
+  border: 5px solid #7a4a35;
+  border-radius: 22px 22px 36px 36px;
+  background: #ffcf78;
+}
+
+.ear-left {
+  left: 12px;
+  transform: rotate(-24deg);
+}
+
+.ear-right {
+  right: 12px;
+  transform: rotate(24deg);
+}
+
+.mascot-face {
+  position: absolute;
+  inset: 56px 34px 38px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  justify-items: center;
+  align-items: start;
+}
+
+.mascot-eye {
+  position: relative;
+  width: 56px;
+  height: 60px;
+  border: 4px solid #7a4a35;
+  border-radius: 50%;
+  background: #fff;
+  overflow: hidden;
+}
+
+.mascot-eye i {
+  position: absolute;
+  left: 18px;
+  top: 20px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #4e312b;
+  transform: translate(var(--look-x), var(--look-y));
+  transition: transform 120ms ease;
+}
+
+.mascot-mouth {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 46px;
+  height: 24px;
+  border-bottom: 5px solid #7a4a35;
+  border-radius: 0 0 999px 999px;
+  transform: translateX(-50%);
+}
+
+.mascot-arm {
+  position: absolute;
+  top: 118px;
+  width: 74px;
+  height: 36px;
+  border: 5px solid #7a4a35;
+  border-radius: 999px;
+  background: #ffaf80;
+  opacity: 0;
+  transition:
+    opacity 180ms ease,
+    transform 220ms ease;
+}
+
+.arm-left {
+  left: 8px;
+  transform: rotate(24deg) translateY(26px);
+}
+
+.arm-right {
+  right: 8px;
+  transform: rotate(-24deg) translateY(26px);
+}
+
+.login-mascot.is-shy .mascot-arm,
+.login-mascot.is-peeking .mascot-arm {
+  opacity: 1;
+}
+
+.login-mascot.is-shy .arm-left {
+  transform: rotate(-8deg) translate(34px, -22px);
+}
+
+.login-mascot.is-shy .arm-right {
+  transform: rotate(8deg) translate(-34px, -22px);
+}
+
+.login-mascot.is-peeking .arm-left {
+  transform: rotate(-8deg) translate(30px, -18px);
+}
+
+.login-mascot.is-peeking .arm-right {
+  transform: rotate(10deg) translate(-10px, -2px);
+}
+
+.mascot-body {
+  width: 210px;
+  height: 122px;
+  border: 5px solid #7a4a35;
+  border-radius: 70px 70px 36px 36px;
+  background: linear-gradient(180deg, #ff8ca4, #f05a7c);
+  box-shadow: inset 0 -12px 0 rgba(126, 44, 70, 0.14);
+}
+
+.mascot-body span {
+  display: block;
+  width: 86px;
+  height: 18px;
+  margin: 34px auto 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.mascot-star {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  background: #fff3a8;
+  clip-path: polygon(50% 0, 62% 34%, 98% 35%, 70% 56%, 80% 92%, 50% 70%, 20% 92%, 30% 56%, 2% 35%, 38% 34%);
+  filter: drop-shadow(0 5px 6px rgba(118, 70, 55, 0.14));
+}
+
+.star-one {
+  left: 18px;
+  top: 68px;
+}
+
+.star-two {
+  right: 22px;
+  top: 38px;
+  transform: scale(0.75) rotate(18deg);
+}
+
+.login-form {
+  display: grid;
+  gap: 14px;
+  padding: 22px;
+  border: 3px solid rgba(255, 200, 74, 0.72);
+  border-radius: 8px;
+  background: rgba(255, 253, 248, 0.95);
+  box-shadow: var(--shadow);
+}
+
+.login-field {
+  display: grid;
+  gap: 8px;
+}
+
+.login-field span:first-child {
+  color: #704434;
+  font-weight: 900;
+}
+
+.password-wrap {
+  position: relative;
+  display: block;
+}
+
+.password-wrap input {
+  width: 100%;
+  padding-right: 58px;
+}
+
+#passwordToggle {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  min-height: 34px;
+  padding: 0 10px;
+  background: #fff1bd;
+  color: #704434;
+  box-shadow: none;
+}
+
+.login-form #loginButton {
+  min-height: 52px;
+  margin-top: 4px;
 }
 
 input {
@@ -833,6 +1096,8 @@ button:disabled {
 
   .login-panel {
     align-items: stretch;
+    grid-template-columns: 1fr;
+    overflow-y: auto;
   }
 
   input {
