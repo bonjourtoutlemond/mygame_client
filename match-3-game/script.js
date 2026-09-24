@@ -1,11 +1,47 @@
 const SIZE = 8;
 
+const fallbackIconRows = [
+  ["heart", "甜心", "甜心头像-icon-256x256.png"],
+  ["mint", "薄荷", "甜心头像-icon-256x256 (1).png"],
+  ["berry", "莓果", "甜心头像-icon-256x256 (2).png"],
+  ["sun", "暖阳", "甜心头像-icon-256x256 (3).png"],
+  ["star", "星星", "甜心头像-icon-256x256 (4).png"],
+];
+
+const extraFallbackIconFiles = [
+  "0a6a1185-1caa-4f7f-8140-c2b09e34dfbb-icon-256x256.png",
+  "61f01070-443c-49bc-9e81-bad088dbfe72-icon-256x256.png",
+  "725598b5-121d-4bfa-af28-a3a91be2b851-icon-256x256.png",
+  "7a724569-1553-450a-851e-c32fa251fedd-icon-256x256.png",
+  "82dbc857-7228-4059-b4f9-d042fe0f39c0-icon-256x256.png",
+  "8319b506-017d-4b39-8f06-305fc3ca54ff-icon-256x256.png",
+  "9167906c-1235-4c0f-a7d4-f1b4647abb24-icon-256x256.png",
+  "a73aa02e-2fc3-4dfb-92f3-6aa72de7e4b3-icon-256x256.png",
+  "af022bce-7a19-4a84-b3a4-6c4830b918fc-icon-256x256.png",
+  "e41ad0c9-eb67-4e38-b0f6-de3a068eb058-icon-256x256.png",
+  "e7f046b6-dff8-4d71-9c76-5730ccb5d1fc-icon-256x256.png",
+  "ea05a4c1-d6a5-48f3-a4e3-fdc363a4951c-icon-256x256.png",
+  "f233d03e-8143-4565-9ead-d85cf50b320a-icon-256x256.png",
+  "f572844a-487e-4e20-aa74-4b18e6d0d66e-icon-256x256.png",
+];
+
+function iconUrl(fileName) {
+  return `../resources/icon/${encodeURIComponent(fileName)}`;
+}
+
+function tileIdFromIconFile(fileName, index) {
+  const base = fileName.replace(/\.[^.]+$/, "").replace(/-icon-256x256$/i, "");
+  const id = base.replace(/[^a-zA-Z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 48);
+  return id || `icon_${index + 1}`;
+}
+
 const fallbackTiles = [
-  { id: "heart", name: "甜心", image: "../resources/icon/甜心头像-icon-256x256.png" },
-  { id: "mint", name: "薄荷", image: "../resources/icon/甜心头像-icon-256x256%20(1).png" },
-  { id: "berry", name: "莓果", image: "../resources/icon/甜心头像-icon-256x256%20(2).png" },
-  { id: "sun", name: "暖阳", image: "../resources/icon/甜心头像-icon-256x256%20(3).png" },
-  { id: "star", name: "星星", image: "../resources/icon/甜心头像-icon-256x256%20(4).png" },
+  ...fallbackIconRows.map(([id, name, file]) => ({ id, name, image: iconUrl(file) })),
+  ...extraFallbackIconFiles.map((file, index) => ({
+    id: tileIdFromIconFile(file, index + fallbackIconRows.length),
+    name: `糖果伙伴 ${index + 1}`,
+    image: iconUrl(file),
+  })),
 ];
 
 const fallbackSkinRows = [
@@ -86,10 +122,13 @@ const modalAction = $("#modalAction");
 function localLevels() {
   return Array.from({ length: 12 }, (_, index) => {
     const level = index + 1;
+    const tileCount = Math.min(fallbackTiles.length, 4 + Math.floor(index / 3));
+    const tileOffset = fallbackTiles.length ? (index * 2) % fallbackTiles.length : 0;
     return {
       id: level,
       name: `星糖试炼 ${level}`,
-      tileCount: Math.min(5, 3 + Math.floor(index / 3)),
+      tileCount,
+      tileIds: Array.from({ length: tileCount }, (_, tileIndex) => fallbackTiles[(tileOffset + tileIndex) % fallbackTiles.length].id),
       timeLimitSec: Math.max(55, 110 - index * 4),
       moveLimit: Math.max(18, 30 - Math.floor(index / 2)),
       targetScore: 900 + index * 420,
@@ -344,9 +383,19 @@ function skillLabel(skill) {
   return "清5格";
 }
 
+function tilesForLevel(level) {
+  const allTiles = state.config?.tiles?.length ? state.config.tiles : fallbackTiles;
+  if (Array.isArray(level?.tileIds) && level.tileIds.length) {
+    const byId = new Map(allTiles.map((tile) => [tile.id, tile]));
+    const selected = level.tileIds.map((id) => byId.get(id)).filter(Boolean);
+    if (selected.length >= 3) return selected;
+  }
+  return allTiles.slice(0, level?.tileCount || 5);
+}
+
 function createBoard(seed) {
   const level = currentLevel();
-  const tiles = state.config.tiles.slice(0, level.tileCount);
+  const tiles = tilesForLevel(level);
   const random = seededRandom(seed || Date.now());
   state.board = Array.from({ length: SIZE }, () => Array.from({ length: SIZE }, () => null));
   for (let row = 0; row < SIZE; row += 1) {
@@ -485,7 +534,7 @@ function choosePower(group, origin) {
 
 function dropTiles() {
   const level = currentLevel();
-  const tiles = state.config.tiles.slice(0, level.tileCount);
+  const tiles = tilesForLevel(level);
   for (let col = 0; col < SIZE; col += 1) {
     const stack = [];
     for (let row = SIZE - 1; row >= 0; row -= 1) {
